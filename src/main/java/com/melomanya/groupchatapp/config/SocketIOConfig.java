@@ -2,6 +2,7 @@ package com.melomanya.groupchatapp.config;
 
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.graphql.ConditionalOnGraphQlSchema;
 import org.springframework.context.annotation.Bean;
 
 import com.corundumstudio.socketio.Configuration;
@@ -13,8 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 
-@CrossOrigin
-@Component
+@org.springframework.context.annotation.Configuration
 public class SocketIOConfig {
 
     @Value("${socket.host}")
@@ -29,29 +29,7 @@ public class SocketIOConfig {
         config.setHostname(SOCKETHOST);
         config.setPort(SOCKETPORT);
         server = new SocketIOServer(config);
-        server.start();
-        server.addConnectListener(new ConnectListener() {
-            @Override
-            public void onConnect(SocketIOClient client) {
-
-                System.out.println("new user connected with socket " + client.getSessionId());
-            }
-        });
-
-        server.addDisconnectListener(new DisconnectListener() {
-            @Override
-            public void onDisconnect(SocketIOClient client) {
-                client.getNamespace().getAllClients().stream().forEach(data-> {
-                    System.out.println("user disconnected "+data.getSessionId().toString());
-                });
-            }
-        });
         return server;
-    }
-
-    @PreDestroy
-    public void stopSocketIOServer() {
-        this.server.stop();
     }
 
 
