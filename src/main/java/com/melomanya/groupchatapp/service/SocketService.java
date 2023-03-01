@@ -8,7 +8,6 @@ import com.melomanya.groupchatapp.data.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 @Component
 public class SocketService {
@@ -40,8 +39,8 @@ public class SocketService {
     //Mesajın gideceği yerleri buradan belirliyoruz.ackRequest mesjain gidip gitmediği
     private DataListener<Message> messageIsSent() {
         return (socketIOClient, message, ackRequest) -> {
-            logger.info("" + socketIOClient.getSessionId() + "" + message.getMessage());
-            socketIOClient.getNamespace().getBroadcastOperations().sendEvent("getMessage",message.getMessage());
+            logger.info("" + socketIOClient.getSessionId() + "" + message.getContext());
+            socketIOClient.getNamespace().getBroadcastOperations().sendEvent("get_messages",message.getContext());
         };
     }
 
