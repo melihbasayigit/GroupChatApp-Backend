@@ -18,6 +18,6 @@ public class MessageController {
     }
     @RequestMapping("/{room}")
     public ResponseEntity<List<Message>> getMessages(@PathVariable String room){
-        return ResponseEntity.ok(messageService.getMessagesFromRoom(Integer.parseInt(room)));
+        return ResponseEntity.ok(messageService.getMessagesFromRoom(room));
     }
 }

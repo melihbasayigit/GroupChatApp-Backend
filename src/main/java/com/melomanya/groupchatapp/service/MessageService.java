@@ -23,7 +23,7 @@ public class MessageService {
         return repository.findById(messageId).orElse(null);
     }
 
-    public List<Message> getMessagesFromRoom(int room) {
+    public List<Message> getMessagesFromRoom(String room) {
         return repository.findByRoom(room);
     }
 

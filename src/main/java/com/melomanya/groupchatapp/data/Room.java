@@ -3,32 +3,32 @@ package com.melomanya.groupchatapp.data;
 import java.util.List;
 
 public class Room {
-    private int number;
-    private int connectedUsers;
+    private String id;
+    private int userCount;
     private List<Message> messages;
 
     public Room() {}
 
-    public Room(int number, int connectedUsers, List<Message> messages) {
-        this.number = number;
-        this.connectedUsers = connectedUsers;
+    public Room(String id, int userCount, List<Message> messages) {
+        this.id = id;
+        this.userCount = userCount;
         this.messages = messages;
     }
 
-    public int getNumber() {
-        return number;
+    public String getId() {
+        return id;
     }
 
-    public void setNumber(int number) {
-        this.number = number;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public int getConnectedUsers() {
-        return connectedUsers;
+    public int getUserCount() {
+        return userCount;
     }
 
-    public void setConnectedUsers(int connectedUsers) {
-        this.connectedUsers = connectedUsers;
+    public void setUserCount(int userCount) {
+        this.userCount = userCount;
     }
 
     public List<Message> getMessages() {

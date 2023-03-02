@@ -1,15 +1,18 @@
 package com.melomanya.groupchatapp.service;
 
+import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.melomanya.groupchatapp.data.Message;
+import com.melomanya.groupchatapp.data.Room;
 import com.melomanya.groupchatapp.data.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Random;
 
 @Component
@@ -28,12 +31,12 @@ public class SocketService {
         socketIOServer.addConnectListener(onConnected());
         socketIOServer.addDisconnectListener(onDisconnected());
         //Gelen mesaj vs gibi objeler
-        socketIOServer.addEventListener("send_message", Message.class,messageIsSent());
+        socketIOServer.addEventListener("send_message", Message.class, messageIsSent());
         this.userService = userService;
     }
 
     private String generateRandomUser() {
-        int rand = new Random().nextInt(900000)+100000;
+        int rand = new Random().nextInt(899999)+100000;
         return "User" + rand;
     }
 
@@ -44,11 +47,12 @@ public class SocketService {
             if ( connectMessage.getHandshakeData().getSingleHeader("name") != null) {
                 test.setDisplayName(connectMessage.getHandshakeData().getSingleHeader("name"));
             } else {
-
                 test.setDisplayName(generateRandomUser());
             }
             test.setSocketId(connectMessage.getSessionId().toString());
             userService.registerUser(test);
+            String room = connectMessage.getHandshakeData().getSingleUrlParam("room");
+            connectMessage.joinRoom(room);
         };
     }
     private DisconnectListener onDisconnected() {
@@ -61,10 +65,16 @@ public class SocketService {
     private DataListener<Message> messageIsSent() {
         return (socketIOClient, message, ackRequest) -> {
             logger.info("" + socketIOClient.getSessionId() + "" + message.getContext());
-            socketIOClient.getNamespace().getBroadcastOperations().sendEvent("get_messages",message.getContext());
             messageService.saveMessage(message);
-
+            String room = socketIOClient.getHandshakeData().getSingleUrlParam("room");
+            sendMessage(room, "get_message", socketIOClient, message.getContext());
         };
+    }
+
+    private void sendMessage(String room, String eventName, SocketIOClient senderClient, String message) {
+            for (SocketIOClient client : senderClient.getNamespace().getRoomOperations(room).getClients()) {
+                client.sendEvent(eventName, message);
+            }
     }
 
 }
