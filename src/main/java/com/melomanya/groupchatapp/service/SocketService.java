@@ -14,10 +14,12 @@ public class SocketService {
 
     private SocketIOServer socketIOServer;
     //logger için;
+    private MessageService messageService;
     private Logger logger=  LoggerFactory.getLogger(getClass());
 
-    public SocketService(SocketIOServer socketIOServer) {
+    public SocketService(SocketIOServer socketIOServer, MessageService messageService) {
         this.socketIOServer = socketIOServer;
+        this.messageService=messageService;
         socketIOServer.addConnectListener(onConnected());
         socketIOServer.addDisconnectListener(onDisconnected());
         //Gelen mesaj vs gibi objeler
@@ -41,6 +43,8 @@ public class SocketService {
         return (socketIOClient, message, ackRequest) -> {
             logger.info("" + socketIOClient.getSessionId() + "" + message.getContext());
             socketIOClient.getNamespace().getBroadcastOperations().sendEvent("get_messages",message.getContext());
+            messageService.saveMessage(message);
+
         };
     }
 

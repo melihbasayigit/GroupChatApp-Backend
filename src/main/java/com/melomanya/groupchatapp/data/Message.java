@@ -3,13 +3,20 @@ package com.melomanya.groupchatapp.data;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.CurrentTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import static org.springframework.data.util.TypeUtils.type;
 
 
 @Entity
@@ -21,20 +28,39 @@ public class Message {
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     @Column(name = "message_id")
     private String id;
+
+
+
     // Room değişkenini frontend tarafına göndermememiz lazım bunun için bir annotation filan var mı?
+    //Getterlarını silmek yeterliymiş :)
     @Column(name = "room")
     private int room;
     @Column(name = "context")
     private String context;
+
     @Column(name = "sender")
     private String sender;
     @Column(name = "sender_id")
     private String senderId;
-    @Column(name = "date")
-    @CreatedDate
-    private Date date;
+   @Column(name = "local_date_time")
+   @CreationTimestamp
+   @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime localDateTime;
+
+    public LocalDateTime getLocalDateTime() {
+        return localDateTime;
+    }
+
+    public void setLocalDateTime(LocalDateTime localDateTime) {
+        this.localDateTime = localDateTime;
+    }
+
+
+
 
     public Message() {}
+
+
 
     public String getId() {
         return id;
@@ -44,9 +70,7 @@ public class Message {
         this.id = id;
     }
 
-    public int getRoom() {
-        return room;
-    }
+
 
     public void setRoom(int room) {
         this.room = room;
@@ -76,11 +100,5 @@ public class Message {
         this.senderId = senderId;
     }
 
-    public Date getDate() {
-        return date;
-    }
 
-    public void setDate(Date date) {
-        this.date = date;
-    }
 }
