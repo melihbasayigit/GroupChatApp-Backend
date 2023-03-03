@@ -2,27 +2,16 @@ package com.melomanya.groupchatapp.data;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.CurrentTimestamp;
 import org.hibernate.annotations.GenericGenerator;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.sql.Date;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
-import static org.springframework.data.util.TypeUtils.type;
+import java.util.Date;
 
 
 @Entity
-@EntityListeners(AuditingEntityListener.class)
+//@EntityListeners(AuditingEntityListener.class)
 @Table(name ="message")
 public class Message {
     @Id
@@ -32,36 +21,32 @@ public class Message {
     private String id;
 
 
-
     // Room değişkenini frontend tarafına göndermememiz lazım bunun için bir annotation filan var mı?
     //Getterlarını silmek yeterliymiş :)
     @Column(name = "room")
+    @JsonIgnore
     private String room;
-    @Column(name = "context")
-    private String context;
-
+    @Column(name = "message")
+    private String message;
     @Column(name = "sender")
     private String sender;
     @Column(name = "sender_id")
     private String senderId;
-    @Column(name = "local_date_time")
+    @Column(name = "date")
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime localDateTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date date;
 
-    public LocalDateTime getLocalDateTime() {
-        return localDateTime;
+    public Date getDate() {
+        return date;
     }
 
-    public void setLocalDateTime(LocalDateTime localDateTime) {
-        this.localDateTime = localDateTime;
+    public void setDate(Date date) {
+        this.date = date;
     }
 
-
-
-
-    public Message() {}
-
+    public Message() {
+    }
 
 
     public String getId() {
@@ -72,18 +57,20 @@ public class Message {
         this.id = id;
     }
 
-
+    public String getRoom() {
+        return room;
+    }
 
     public void setRoom(String room) {
         this.room = room;
     }
 
-    public String getContext() {
-        return context;
+    public String getMessage() {
+        return message;
     }
 
-    public void setContext(String context) {
-        this.context = context;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public String getSender() {
@@ -101,6 +88,4 @@ public class Message {
     public void setSenderId(String senderId) {
         this.senderId = senderId;
     }
-
-
 }

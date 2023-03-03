@@ -41,40 +41,69 @@ public class SocketService {
     }
 
     private ConnectListener onConnected() {
-        return connectMessage->{
-            logger.debug("SocketId: "+connectMessage.getSessionId().toString()+"connected");
+        return socketIOClient ->{
+            logger.debug("SocketId: "+ socketIOClient.getSessionId().toString()+"connected");
             User test = new User();
-            if ( connectMessage.getHandshakeData().getSingleHeader("name") != null) {
-                test.setDisplayName(connectMessage.getHandshakeData().getSingleHeader("name"));
+            if ( socketIOClient.getHandshakeData().getSingleHeader("name") != null) {
+                test.setDisplayName(socketIOClient.getHandshakeData().getSingleHeader("name"));
             } else {
                 test.setDisplayName(generateRandomUser());
             }
-            test.setSocketId(connectMessage.getSessionId().toString());
+            test.setSocketId(socketIOClient.getSessionId().toString());
             userService.registerUser(test);
-            String room = connectMessage.getHandshakeData().getSingleUrlParam("room");
-            connectMessage.joinRoom(room);
+            String roomId = socketIOClient.getHandshakeData().getSingleUrlParam("room");
+            socketIOClient.joinRoom(roomId);
+            Room messageRoom = createMessageRoom(socketIOClient);
+            sendMessages(roomId, "get_message", socketIOClient, messageRoom);
         };
     }
     private DisconnectListener onDisconnected() {
-        return connectMessage->{
-            logger.info("SocketId: "+connectMessage.getSessionId().toString()+"disconnected");
+        return socketIOClient->{
+            logger.info("SocketId: "+socketIOClient.getSessionId().toString()+"disconnected");
+            Room messageRoom = createMessageRoom(socketIOClient);
+            sendMessages(messageRoom.getId(), "get_message", socketIOClient, messageRoom);
         };
     }
     //Mesaj gitti mi gitmedi mi mesaj bilgilerinin falan göndermek için DataListener kullanılıypor
     //Mesajın gideceği yerleri buradan belirliyoruz.ackRequest mesjain gidip gitmediği
     private DataListener<Message> messageIsSent() {
         return (socketIOClient, message, ackRequest) -> {
-            logger.info("" + socketIOClient.getSessionId() + "" + message.getContext());
+            logger.info("" + socketIOClient.getSessionId() + "" + message.getMessage());
+            String roomId = socketIOClient.getHandshakeData().getSingleUrlParam("room");
+            message.setRoom(roomId);
+            message.setSenderId(socketIOClient.getSessionId().toString());
+            message.setSender(getSenderName(socketIOClient.getSessionId().toString()));
             messageService.saveMessage(message);
-            String room = socketIOClient.getHandshakeData().getSingleUrlParam("room");
-            sendMessage(room, "get_message", socketIOClient, message.getContext());
+            Room messageRoom = createMessageRoom(socketIOClient);
+            sendMessages(roomId, "get_message", socketIOClient, messageRoom);
         };
     }
-
-    private void sendMessage(String room, String eventName, SocketIOClient senderClient, String message) {
-            for (SocketIOClient client : senderClient.getNamespace().getRoomOperations(room).getClients()) {
-                client.sendEvent(eventName, message);
-            }
+    private void sendMessages(String roomId, String eventName, SocketIOClient senderClient, Room room) {
+        for (SocketIOClient client : senderClient.getNamespace().getRoomOperations(roomId).getClients()) {
+            client.sendEvent(eventName, room);
+        }
     }
+
+    private String getSenderName(String socketId) {
+        return userService.getDisplayNameFromId(socketId);
+    }
+
+    private int getRoomUserCount(SocketIOClient client, String roomId) {
+        return client.getNamespace().getRoomOperations(roomId).getClients().size();
+    }
+
+    private List<Message> getMessageListFromRoomId(String roomId) {
+        return messageService.getMessagesFromRoom(roomId);
+    }
+
+    private Room createMessageRoom(SocketIOClient client) {
+        Room messageRoom = new Room();
+        String roomId = client.getHandshakeData().getSingleUrlParam("room");
+        messageRoom.setId(roomId);
+        messageRoom.setUserCount(getRoomUserCount(client, roomId));
+        messageRoom.setMessages(getMessageListFromRoomId(roomId));
+        return messageRoom;
+    }
+
 
 }
