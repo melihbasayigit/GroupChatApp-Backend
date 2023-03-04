@@ -10,6 +10,7 @@ import java.util.List;
 public interface MessageRepository extends JpaRepository<Message, String> {
 
     List<Message> findByRoom(String room);
+    List<Message> findByRoomOrderByDate(String room);
 
 
 }

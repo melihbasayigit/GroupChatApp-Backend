@@ -72,7 +72,7 @@ public class SocketService {
             String roomId = socketIOClient.getHandshakeData().getSingleUrlParam("room");
             message.setRoom(roomId);
             message.setSenderId(socketIOClient.getSessionId().toString());
-            message.setSender(getSenderName(socketIOClient.getSessionId().toString()));
+            message.setSenderName(getSenderName(socketIOClient.getSessionId().toString()));
             messageService.saveMessage(message);
             Room messageRoom = createMessageRoom(socketIOClient);
             sendMessages(roomId, "get_message", socketIOClient, messageRoom);

@@ -24,7 +24,7 @@ public class MessageService {
     }
 
     public List<Message> getMessagesFromRoom(String room) {
-        return repository.findByRoom(room);
+        return repository.findByRoomOrderByDate(room);
     }
 
 }

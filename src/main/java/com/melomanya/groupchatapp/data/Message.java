@@ -28,8 +28,8 @@ public class Message {
     private String room;
     @Column(name = "message")
     private String message;
-    @Column(name = "sender")
-    private String sender;
+    @Column(name = "sender_name")
+    private String senderName;
     @Column(name = "sender_id")
     private String senderId;
     @Column(name = "date")
@@ -73,12 +73,12 @@ public class Message {
         this.message = message;
     }
 
-    public String getSender() {
-        return sender;
+    public String getSenderName() {
+        return senderName;
     }
 
-    public void setSender(String sender) {
-        this.sender = sender;
+    public void setSenderName(String senderName) {
+        this.senderName = senderName;
     }
 
     public String getSenderId() {
