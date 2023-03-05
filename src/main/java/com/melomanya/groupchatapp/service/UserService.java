@@ -7,15 +7,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-    private UserRepository repository;
+    private final UserRepository repository;
 
     public UserService(UserRepository repository) {
         this.repository = repository;
     }
 
-    public User registerUser(User user) {
+    public void registerUser(User user) {
         // add user to database. If already exist rewrite user
-        return repository.save(user);
+        repository.save(user);
     }
 
     public String getDisplayNameFromId(String socketId) {
@@ -24,7 +24,4 @@ public class UserService {
         assert user != null;
         return user.getDisplayName();
     }
-
-
-
 }

@@ -1,6 +1,5 @@
 package com.melomanya.groupchatapp.data;
 
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -10,10 +9,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.Date;
 
-
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name ="message")
+@Table(name = "message")
 public class Message {
     @Id
     @GeneratedValue(generator = "uuid")
@@ -21,18 +19,19 @@ public class Message {
     @Column(name = "message_id")
     private String id;
 
-
-    // Room değişkenini frontend tarafına göndermememiz lazım bunun için bir annotation filan var mı?
-    //Getterlarını silmek yeterliymiş :)
     @Column(name = "room")
     @JsonIgnore
     private String room;
+
     @Column(name = "message")
     private String message;
+
     @Column(name = "sender_name")
     private String senderName;
+
     @Column(name = "sender_id")
     private String senderId;
+
     @Column(name = "date")
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -48,7 +47,6 @@ public class Message {
 
     public Message() {
     }
-
 
     public String getId() {
         return id;

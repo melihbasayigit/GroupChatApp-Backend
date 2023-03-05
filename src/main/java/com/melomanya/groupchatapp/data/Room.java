@@ -4,10 +4,13 @@ import java.util.List;
 
 public class Room {
     private String id;
+
     private int userCount;
+
     private List<Message> messages;
 
-    public Room() {}
+    public Room() {
+    }
 
     public Room(String id, int userCount, List<Message> messages) {
         this.id = id;

@@ -13,62 +13,54 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Random;
+
+import static com.melomanya.groupchatapp.utils.UserUtils.generateRandomUserName;
 
 @Component
 public class SocketService {
 
     private final UserService userService;
 
-    private SocketIOServer socketIOServer;
-    //logger için;
-    private MessageService messageService;
-    private Logger logger=  LoggerFactory.getLogger(getClass());
+    private final SocketIOServer socketIOServer;
+
+    private final MessageService messageService;
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public SocketService(SocketIOServer socketIOServer, MessageService messageService, UserService userService) {
         this.socketIOServer = socketIOServer;
-        this.messageService=messageService;
+        this.messageService = messageService;
+        this.userService = userService;
         socketIOServer.addConnectListener(onConnected());
         socketIOServer.addDisconnectListener(onDisconnected());
-        //Gelen mesaj vs gibi objeler
-        socketIOServer.addEventListener("send_message", Message.class, messageIsSent());
-        this.userService = userService;
-    }
-
-    private String generateRandomUser() {
-        int rand = new Random().nextInt(899999)+100000;
-        return "User" + rand;
+        socketIOServer.addEventListener("send_message", Message.class, onReceived());
     }
 
     private ConnectListener onConnected() {
-        return socketIOClient ->{
-            logger.debug("SocketId: "+ socketIOClient.getSessionId().toString()+"connected");
-            User test = new User();
-            if ( socketIOClient.getHandshakeData().getSingleHeader("name") != null) {
-                test.setDisplayName(socketIOClient.getHandshakeData().getSingleHeader("name"));
-            } else {
-                test.setDisplayName(generateRandomUser());
-            }
-            test.setSocketId(socketIOClient.getSessionId().toString());
-            userService.registerUser(test);
+        return socketIOClient -> {
+            logger.debug("SocketId: " + socketIOClient.getSessionId().toString() + " connected.");
+            User user = createUser(socketIOClient);
+            userService.registerUser(user);
             String roomId = socketIOClient.getHandshakeData().getSingleUrlParam("room");
             socketIOClient.joinRoom(roomId);
             Room messageRoom = createMessageRoom(socketIOClient);
             sendMessages(roomId, "get_message", socketIOClient, messageRoom);
         };
     }
+
     private DisconnectListener onDisconnected() {
-        return socketIOClient->{
-            logger.info("SocketId: "+socketIOClient.getSessionId().toString()+"disconnected");
+        return socketIOClient -> {
+            logger.debug("SocketId: " + socketIOClient.getSessionId().toString() + " disconnected.");
             Room messageRoom = createMessageRoom(socketIOClient);
             sendMessages(messageRoom.getId(), "get_message", socketIOClient, messageRoom);
         };
     }
+
     //Mesaj gitti mi gitmedi mi mesaj bilgilerinin falan göndermek için DataListener kullanılıypor
     //Mesajın gideceği yerleri buradan belirliyoruz.ackRequest mesjain gidip gitmediği
-    private DataListener<Message> messageIsSent() {
+    private DataListener<Message> onReceived() {
         return (socketIOClient, message, ackRequest) -> {
-            logger.info("" + socketIOClient.getSessionId() + "" + message.getMessage());
+            logger.debug("SocketId: " + socketIOClient.getSessionId() + " Message: " + message.getMessage());
             String roomId = socketIOClient.getHandshakeData().getSingleUrlParam("room");
             message.setRoom(roomId);
             message.setSenderId(socketIOClient.getSessionId().toString());
@@ -78,6 +70,31 @@ public class SocketService {
             sendMessages(roomId, "get_message", socketIOClient, messageRoom);
         };
     }
+
+    /**
+     * Yeni bir User değişkeni oluşturur. Buna socket id verir ve kullanıcı ismi verilmişse kullanıcı ismini verir
+     * verilmemişse 6 haneli rakam verir.
+     **/
+    public static User createUser(SocketIOClient socketIOClient) {
+        User user = new User();
+        if (socketIOClient.getHandshakeData().getSingleHeader("name") != null) {
+            user.setDisplayName(socketIOClient.getHandshakeData().getSingleHeader("name"));
+        } else {
+            user.setDisplayName(generateRandomUserName());
+        }
+        user.setSocketId(socketIOClient.getSessionId().toString());
+        return user;
+    }
+
+    private Room createMessageRoom(SocketIOClient client) {
+        Room messageRoom = new Room();
+        String roomId = client.getHandshakeData().getSingleUrlParam("room");
+        messageRoom.setId(roomId);
+        messageRoom.setUserCount(getRoomUserCount(client, roomId));
+        messageRoom.setMessages(getMessageList(roomId));
+        return messageRoom;
+    }
+
     private void sendMessages(String roomId, String eventName, SocketIOClient senderClient, Room room) {
         for (SocketIOClient client : senderClient.getNamespace().getRoomOperations(roomId).getClients()) {
             client.sendEvent(eventName, room);
@@ -92,18 +109,7 @@ public class SocketService {
         return client.getNamespace().getRoomOperations(roomId).getClients().size();
     }
 
-    private List<Message> getMessageListFromRoomId(String roomId) {
-        return messageService.getMessagesFromRoom(roomId);
+    private List<Message> getMessageList(String roomId) {
+        return messageService.getMessages(roomId);
     }
-
-    private Room createMessageRoom(SocketIOClient client) {
-        Room messageRoom = new Room();
-        String roomId = client.getHandshakeData().getSingleUrlParam("room");
-        messageRoom.setId(roomId);
-        messageRoom.setUserCount(getRoomUserCount(client, roomId));
-        messageRoom.setMessages(getMessageListFromRoomId(roomId));
-        return messageRoom;
-    }
-
-
 }
