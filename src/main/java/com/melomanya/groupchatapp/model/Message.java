@@ -1,4 +1,4 @@
-package com.melomanya.groupchatapp.data;
+package com.melomanya.groupchatapp.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;

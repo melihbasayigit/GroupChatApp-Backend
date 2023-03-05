@@ -1,4 +1,4 @@
-package com.melomanya.groupchatapp.data;
+package com.melomanya.groupchatapp.model;
 
 import java.util.List;
 

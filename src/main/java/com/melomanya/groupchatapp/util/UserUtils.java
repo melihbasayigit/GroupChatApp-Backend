@@ -1,7 +1,4 @@
-package com.melomanya.groupchatapp.utils;
-
-import com.corundumstudio.socketio.SocketIOClient;
-import com.melomanya.groupchatapp.data.User;
+package com.melomanya.groupchatapp.util;
 
 import java.util.Random;
 

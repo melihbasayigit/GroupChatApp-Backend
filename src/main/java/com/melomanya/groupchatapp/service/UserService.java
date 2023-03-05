@@ -1,6 +1,6 @@
 package com.melomanya.groupchatapp.service;
 
-import com.melomanya.groupchatapp.data.User;
+import com.melomanya.groupchatapp.model.User;
 import com.melomanya.groupchatapp.repository.UserRepository;
 import org.springframework.stereotype.Service;
 

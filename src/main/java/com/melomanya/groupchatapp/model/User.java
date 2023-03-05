@@ -1,4 +1,4 @@
-package com.melomanya.groupchatapp.data;
+package com.melomanya.groupchatapp.model;
 
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;

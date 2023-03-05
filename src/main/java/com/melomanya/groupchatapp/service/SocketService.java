@@ -5,16 +5,19 @@ import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
-import com.melomanya.groupchatapp.data.Message;
-import com.melomanya.groupchatapp.data.Room;
-import com.melomanya.groupchatapp.data.User;
+import com.melomanya.groupchatapp.model.Message;
+import com.melomanya.groupchatapp.model.Room;
+import com.melomanya.groupchatapp.model.User;
+import com.melomanya.groupchatapp.util.response.ValidatorResponse;
+import com.melomanya.groupchatapp.util.validator.EmptyStringValidator;
+import com.melomanya.groupchatapp.util.validator.NullValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.melomanya.groupchatapp.utils.UserUtils.generateRandomUserName;
+import static com.melomanya.groupchatapp.util.UserUtils.generateRandomUserName;
 
 @Component
 public class SocketService {
@@ -60,6 +63,14 @@ public class SocketService {
     //Mesajın gideceği yerleri buradan belirliyoruz.ackRequest mesjain gidip gitmediği
     private DataListener<Message> onReceived() {
         return (socketIOClient, message, ackRequest) -> {
+            String newMessage = message.getMessage();
+            ValidatorResponse validator = new ValidatorResponse(
+                    new NullValidator(newMessage), new EmptyStringValidator(newMessage)
+            );
+            ackRequest.sendAckData(validator.getResponse());
+            if (!validator.isSuccess()) {
+                return;
+            }
             logger.debug("SocketId: " + socketIOClient.getSessionId() + " Message: " + message.getMessage());
             String roomId = socketIOClient.getHandshakeData().getSingleUrlParam("room");
             message.setRoom(roomId);
