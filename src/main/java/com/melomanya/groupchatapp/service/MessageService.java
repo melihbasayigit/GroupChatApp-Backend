@@ -23,8 +23,4 @@ public class MessageService {
     public List<Message> getMessages(String roomId) {
         return repository.findByRoomOrderByDate(roomId);
     }
-
-    /*public List<Message> getMessages(String roomId, Pageable pageable) {
-        return repository.findByRoomOrderByDate(roomId, pageable);
-    }*/
 }
